@@ -62,6 +62,11 @@ manager_access_off:
   ar: "مش متاح تشوف البيانات دي عن فريقك."
   en: "This information about your team isn't available to you."
 
+data_problem:
+  when: "A query that expects exactly one current row returns more — salary, contract. Logged in the turn log; never guessed."
+  ar: "في مشكلة في السجل ده. من فضلك تواصل مع الموارد البشرية."
+  en: "There is a problem with this record. Please contact HR."
+
 unavailable:
   when: "Kill switch off, AI service down or 503, database down, or any check that can't run (L11)."
   ar: "المساعد مش متاح دلوقتي."

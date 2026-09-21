@@ -410,8 +410,8 @@ or only closed months? (BQ3)
 The current, active, approved row from `salary`: basic, each allowance, gross, net, currency, pay
 frequency, effective date.
 
-**Never selected:** `bank_name`, `bank_account`, `bank_iban`. More than one row → refused and
-logged as a data problem, never guessed. Open question for backend: can two rows be `is_current`?
+**Never selected:** `bank_name`, `bank_account`, `bank_iban`. More than one row → refused as
+`data_problem` and logged, never guessed. Open question for backend: can two rows be `is_current`?
 (BQ2)
 
 ### 7.5 `contract` — general · P2
@@ -420,7 +420,8 @@ The current, active contract from `employee_contracts`, **excluding the remote-w
 status, dates, open-ended, probation end, notice period, renewal type.
 
 **Never selected:** `file_path`, `special_conditions`, `contract_number`. The contract itself is
-never read — only these fields. Open question for backend: can an addendum be `is_current` alongside
+never read — only these fields. More than one row → refused as `data_problem` and logged, never
+guessed. Open question for backend: can an addendum be `is_current` alongside
 the main contract? (BQ4)
 
 ### 7.6 `documents_expiring` — general · P2
@@ -437,8 +438,10 @@ The subject's penalties from `cd_penalties` joined to `cd_violation_types`, newe
 from a start date: number, violation name ar/en, date, kind, deduction days, status, applied at.
 Only the visible statuses.
 
-The visible statuses come from Laravel's settings — default `{applied, appealed}` until business U6
-decides whether `investigating` should be visible. **Never selected:** `note`,
+The visible statuses come from two Laravel settings — `penalty_visible_statuses_self` when the asker
+is viewing their own record, `penalty_visible_statuses_manager` when a manager is viewing a team
+member's. Both default to `{applied, appealed}` until business U6 decides, for employees and managers
+separately, whether `investigating` should be visible. **Never selected:** `note`,
 `investigation_notes`, `investigation_attachment_path`, `appeal_reason`, `waived_reason`.
 
 ### 7.8 `my_team` — manager only · P2
@@ -529,6 +532,7 @@ wording; values are always filled by code. The full set, both languages, is in `
 | `no_data` | Query returns zero rows | Per question type, e.g. مفيش ملخص حضور للشهر ده لسه. |
 | `not_available_yet` | Policy, لائحة, document contents, pay periods, a P2 type not yet built | الأسئلة دي لسه مش متاحة. |
 | `manager_access_off` | Manager switch is off for this type | مش متاح تشوف البيانات دي عن فريقك. |
+| `data_problem` | A query that expects exactly one current row returns more — `salary`, `contract`. Logged, never guessed | في مشكلة في السجل ده. من فضلك تواصل مع الموارد البشرية. |
 | `unavailable` | Kill switch, AI service down or `503`, database down | المساعد مش متاح دلوقتي. |
 
 `not_found` and "exists outside your team" produce **byte-identical responses** (L6). A backend test
@@ -592,7 +596,8 @@ One row per question, in Laravel's own storage.
   `language`, `prompt_version`) for evaluation — never answer values. Only once business U7 approves
   it, and within U5
 - Laravel settings: `assistant_enabled`, `disabled_intents`, `manager_sees_compensation`,
-  `manager_sees_disciplinary`, `penalty_visible_statuses`, resolution thresholds
+  `manager_sees_disciplinary`, `penalty_visible_statuses_self`, `penalty_visible_statuses_manager`,
+  resolution thresholds
 
 ---
 
@@ -680,10 +685,11 @@ Each implements a spec in `docs/specs/`.
 | **U1** | Which AI provider, and approval to send employees' **question text** (never their data) | 3 | **Production** |
 | **U2** | HR confirms managers may see their team's salary and penalties | 1 | Nothing — switches default on per Seif's decision |
 | **U3** | 20–30 real questions in the way staff actually talk, with the expected answer | 4 | Evaluation |
-| **U4** | The exact deadline date | 0 | Planning |
+| **U4** | The exact deadline date | 1 | Planning |
 | **U5** | How long question text and turn logs are kept | 1 | Production |
 | **U6** | Which penalty statuses employees and managers may see — is `investigating` visible? | 1 | `penalties` |
 | **U7** | The AI team receives an export of question text + understanding result (`intent`, `subject_kind`, `language`, `prompt_version`) for evaluation — **never answer values**. Subject to U5 | 4 | Improving understanding after launch |
+| **U8** | HR reviews and approves the Arabic wording in `docs/specs/templates.yaml` and `docs/specs/refusals.yaml` — templates, refusal texts, column labels and coded-value labels | 1 | Release |
 
 **The critical path is the backend's P1 work (B6–B15), with B1, B2, B5 and U1.** The AI service never
 waits on anyone — `FakeUnderstander` and made-up questions cover its development. Production waits on

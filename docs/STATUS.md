@@ -27,7 +27,7 @@ Phase 1 needs are written but **DRAFT** — not yet raised with anyone.
 |---|---|---|
 | backend | B1, B2, B4, B5 · BQ1–BQ5 · B6–B15 (P1) · B16 (P2) | DRAFT |
 | database | D4 | DRAFT |
-| business | U2, U4, U6 | DRAFT |
+| business | U2, U4, U6, U8 | DRAFT |
 
 ## Blocked
 

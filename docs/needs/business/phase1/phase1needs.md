@@ -33,8 +33,11 @@ Expected:
 
 ### U6 — Which penalty statuses may be seen
 
-Why:      the penalties query shows only visible statuses — default applied and appealed. The
-          schema also has draft, investigating and waived (architecture §7.7)
+Why:      the penalties query shows only visible statuses, from two settings —
+          penalty_visible_statuses_self (someone viewing their own record) and
+          penalty_visible_statuses_manager (a manager viewing a team member's). Both default to
+          applied and appealed. The schema also has draft, investigating and waived
+          (architecture §7.7)
 Blocks:   `penalties`
 Owner:    business
 Phase:    1
@@ -43,3 +46,17 @@ How to verify:
 Expected:
     For employees and for managers: which of draft, investigating, applied, waived, appealed are
     visible — from a named person in HR, with the date
+
+### U8 — HR approves the Arabic wording
+
+Why:      every answer and refusal the user reads comes from docs/specs/templates.yaml and
+          docs/specs/refusals.yaml. The Arabic was drafted by the AI team — including the column
+          labels and the labels for coded values such as leave, contract and penalty statuses
+Blocks:   release
+Owner:    business
+Phase:    1
+How to verify:
+    Read HR's answer in the response file
+Expected:
+    Approval of templates.yaml and refusals.yaml as they stand, or the changed wording — from a
+    named person in HR, with the date and the git commit of the files reviewed

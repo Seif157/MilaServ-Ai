@@ -116,7 +116,7 @@ WHERE  employee_id = :target_id
 |---|---|
 | `:target_id` | the resolved subject |
 
-More than one row → refused and logged as a data problem, never guessed (BQ2).
+More than one row → refused with `data_problem` and logged, never guessed (BQ2).
 
 ---
 
@@ -139,6 +139,8 @@ WHERE  employee_id = :target_id
 | Binding | Value |
 |---|---|
 | `:target_id` | the resolved subject |
+
+More than one row → refused with `data_problem` and logged, never guessed (BQ4).
 
 ### documents_expiring
 
@@ -179,7 +181,7 @@ LIMIT  50;
 | Binding | Value |
 |---|---|
 | `:target_id` | the resolved subject |
-| `:visible_statuses` | from the setting `penalty_visible_statuses` — default `'{applied,appealed}'` until U6 |
+| `:visible_statuses` | the asker viewing their own record: the setting `penalty_visible_statuses_self` · a manager viewing a team member's: `penalty_visible_statuses_manager`. Both default `'{applied,appealed}'` until U6 |
 | `:from_date` | the start of the period asked |
 
 ### my_team — manager only

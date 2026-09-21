@@ -84,3 +84,19 @@ What:  uv manages the Python version and the dependencies. Python is pinned to 3
        only by a recorded decision
 Who:   Seif Eleslam
 When:  2026-09-21
+
+### 007 — Phase 1 answers: data_problem, two penalty settings, U4, U8
+
+What:  1. New refusal reason `data_problem` — "the record has a problem, contact HR". Used whenever a
+          query that expects exactly one current row returns more: `salary` and `contract`. Logged
+          in the turn log; never guessed
+       2. U4 (the deadline) moves to Phase 1
+       3. U6 asks about employees and managers separately. `penalty_visible_statuses` is replaced
+          by two settings — `penalty_visible_statuses_self` (viewing one's own record) and
+          `penalty_visible_statuses_manager` (a manager viewing a team member's), both default
+          `{applied, appealed}`. Laravel picks one by whose record is being viewed. The SQL is
+          unchanged; only the binding changes
+       4. New business need U8: HR reviews and approves the Arabic wording in `templates.yaml` and
+          `refusals.yaml`, including column labels and coded-value labels
+Who:   Seif Eleslam
+When:  2026-09-21

@@ -29,3 +29,11 @@ Done by:
 Evidence:
 Verified by:
 Result:
+
+### U8 — HR approves the Arabic wording
+
+Status:       REQUESTED
+Done by:
+Evidence:
+Verified by:
+Result:

@@ -163,9 +163,9 @@ architecture; the sections are named in each phase.
 ## Phase 0 — Setup · day 1 morning
 
 **Build**
-- `.gitattributes` (`* text=auto eol=lf`) as the **first** commit — done, `2e545fb`
-- `.gitignore` with `.venv/`, `__pycache__/`, `.env`, `*.pyc` — done, `2e545fb`
-- `.vscode/settings.json` with `"files.eol": "\n"` — done, `2e545fb`
+- `.gitattributes` (`* text=auto eol=lf`) as the **first** commit
+- `.gitignore` with `.venv/`, `__pycache__/`, `.env`, `*.pyc`
+- `.vscode/settings.json` with `"files.eol": "\n"`
 - `.python-version` (3.12) and `uv.lock`, managed by uv
 - `pyproject.toml` — Python 3.12, FastAPI, uvicorn, pydantic v2, pydantic-settings, httpx; dev
   extras pytest, ruff, mypy. **No database driver, no JWT library, no spreadsheet library** —
@@ -174,9 +174,9 @@ architecture; the sections are named in each phase.
 - `tests/test_no_database.py` — no database driver in `pyproject.toml` or `uv.lock`
 
 **Exit**
-- [x] `uv run pytest`, `uv run ruff check .`, `uv run mypy app` all pass
-- [x] `GET /healthz` returns 200
-- [x] `git ls-files --eol` shows no file stored as `i/crlf` or `i/mixed` — empty files show
+- [ ] `uv run pytest`, `uv run ruff check .`, `uv run mypy app` all pass
+- [ ] `GET /healthz` returns 200
+- [ ] `git ls-files --eol` shows no file stored as `i/crlf` or `i/mixed` — empty files show
       `i/none`, which is correct
 
 ## Phase 1 — Contract and specs for the backend · day 1
@@ -185,8 +185,7 @@ This unblocks the backend. **Build** — architecture §4.2, §5, §6.1, §7, §
 
 `docs/specs/` holds:
 - the `/v1/understand` API, as OpenAPI
-- the question-type catalogue with draft SQL, in P1/P2 order — `docs/specs/catalogue.md`, drafted
-  2026-09-21
+- the question-type catalogue with draft SQL, in P1/P2 order — `docs/specs/catalogue.md`
 - name-matching rules
 - access rules for Laravel (L1–L12)
 - templates, Arabic and English
@@ -195,10 +194,10 @@ This unblocks the backend. **Build** — architecture §4.2, §5, §6.1, §7, §
 - turn-log fields
 
 **Exit**
-- [x] `docs/specs/` has every item above
-- [x] A test checks that every table and column named in the specs exists in
+- [ ] `docs/specs/` has every item above
+- [ ] A test checks that every table and column named in the specs exists in
       `schema/erp_hr_schema.sql`
-- [x] `docs/needs/backend/phase1/` and `docs/needs/database/phase1/` exist, in the §3.3 format
+- [ ] `docs/needs/backend/phase1/` and `docs/needs/database/phase1/` exist, in the §3.3 format
 
 ## Phase 2 — Understanding service with the fake model · day 2
 
@@ -289,8 +288,9 @@ For every task:
 5. Run `uv run pytest`, `uv run ruff check .`, `uv run mypy app` before saying you're done
 6. **Show the diff and wait for approval before committing**
 7. **Never push.** Commit only after approval; a person on the AI team pushes
-8. Update `docs/STATUS.md` if a phase or need changed state
-9. Report: files changed · tests added · commands run · results · anything open
+8. **Never tick boxes or record progress in `CLAUDE.md`** — use `docs/STATUS.md`
+9. Update `docs/STATUS.md` if a phase or need changed state
+10. Report: files changed · tests added · commands run · results · anything open
 
 **Do only the task asked.** No extra files, folders or scaffolding.
 

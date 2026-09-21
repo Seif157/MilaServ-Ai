@@ -23,7 +23,7 @@ choice.
 | `subject_kind` | text, nullable | `self` or `person`; `null` when intent is `unknown` |
 | `target_employee_id` | uuid, nullable | Who the answer was about, once resolved |
 | `outcome` | text | `answered`, `needs_choice`, `refused`, `unavailable` |
-| `refusal_reason` | text, nullable | A reason from `refusals.yaml` |
+| `refusal_reason` | text, nullable | A reason from `refusals.yaml` — including `data_problem`, so records with more than one current row can be found and fixed |
 | `sensitivity` | text | `general`, `compensation`, `disciplinary` |
 | `row_count` | integer | Rows the query returned |
 | `latency_ms` | integer | End to end |

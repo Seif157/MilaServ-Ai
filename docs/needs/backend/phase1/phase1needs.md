@@ -79,7 +79,7 @@ Expected:
 
 ### BQ2 — Can one employee have two `salary` rows with `is_current = true`?
 
-Why:      the `salary` query expects one row; two are refused as a data problem (architecture §7.4)
+Why:      the `salary` query expects one row; more are refused as `data_problem` (architecture §7.4)
 Blocks:   `salary`
 Owner:    backend
 Phase:    1
@@ -102,7 +102,8 @@ Expected:
 
 ### BQ4 — Can a remote-work addendum be `is_current` alongside the main contract?
 
-Why:      the `contract` query excludes addenda and expects one row (architecture §7.5)
+Why:      the `contract` query excludes addenda and expects one row; more are refused as
+          `data_problem` (architecture §7.5)
 Blocks:   `contract`
 Owner:    backend
 Phase:    1

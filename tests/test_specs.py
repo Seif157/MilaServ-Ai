@@ -32,8 +32,9 @@ NEVER_SELECTED = {
 NEVER_SELECTED_SUFFIXES = ("_notes", "_reason")
 REFUSAL_REASONS = {
     "own_records_only", "not_found", "not_understood", "no_data",
-    "not_available_yet", "manager_access_off", "unavailable",
+    "not_available_yet", "manager_access_off", "data_problem", "unavailable",
 }
+ARCHITECTURE = ROOT / "plan" / "HR_ASSISTANT_ARCHITECTURE.md"
 PLACEHOLDER = re.compile(r"(?<![:\w]):([a-z_][a-z0-9_]*)")
 
 
@@ -270,6 +271,13 @@ def test_refusals_cover_every_reason_in_both_languages() -> None:
                 assert set(spec[question_type]) == {"ar", "en"}
         else:
             assert set(spec) == {"when", "ar", "en"}, reason
+
+
+def test_refusals_match_the_architecture_table() -> None:
+    text = ARCHITECTURE.read_text(encoding="utf-8")
+    section = text[text.index("### 9.2 Refusals") : text.index("### 9.3")]
+    in_architecture = set(re.findall(r"^\| `(\w+)` \|", section, re.M))
+    assert in_architecture == set(REFUSALS) == REFUSAL_REASONS
 
 
 def test_g_exactly_one_not_found_text_per_language() -> None:

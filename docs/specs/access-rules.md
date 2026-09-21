@@ -31,3 +31,14 @@ sensitivity (architecture §7.9):
 | general | all others | — | always on |
 
 Switch off → `manager_access_off`. A manager asking about **themselves** is never affected.
+
+## Visible penalty statuses
+
+Which penalty statuses can be seen depends on whose record it is:
+
+| Viewing | Setting | Default |
+|---|---|---|
+| Their own record — employee or manager | `penalty_visible_statuses_self` | `{applied, appealed}` |
+| A team member's record — manager only | `penalty_visible_statuses_manager` | `{applied, appealed}` |
+
+Laravel binds the chosen setting to `:visible_statuses` (`catalogue.md`). Business U6 decides both.
