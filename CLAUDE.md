@@ -166,14 +166,18 @@ architecture; the sections are named in each phase.
 - `.gitattributes` (`* text=auto eol=lf`) as the **first** commit — done, `2e545fb`
 - `.gitignore` with `.venv/`, `__pycache__/`, `.env`, `*.pyc` — done, `2e545fb`
 - `.vscode/settings.json` with `"files.eol": "\n"` — done, `2e545fb`
-- `pyproject.toml` — Python 3.12, FastAPI, pydantic v2, httpx, pytest, ruff, mypy. **No database
-  driver, no JWT library, no spreadsheet library** — architecture §13
+- `.python-version` (3.12) and `uv.lock`, managed by uv
+- `pyproject.toml` — Python 3.12, FastAPI, uvicorn, pydantic v2, pydantic-settings, httpx; dev
+  extras pytest, ruff, mypy. **No database driver, no JWT library, no spreadsheet library** —
+  architecture §13
 - FastAPI app with `GET /healthz`
+- `tests/test_no_database.py` — no database driver in `pyproject.toml` or `uv.lock`
 
 **Exit**
-- [ ] `python -m pytest`, `ruff check`, `mypy` all pass
-- [ ] `GET /healthz` returns 200
-- [ ] `git ls-files --eol` shows every file stored as LF
+- [x] `uv run pytest`, `uv run ruff check .`, `uv run mypy app` all pass
+- [x] `GET /healthz` returns 200
+- [x] `git ls-files --eol` shows no file stored as `i/crlf` or `i/mixed` — empty files show
+      `i/none`, which is correct
 
 ## Phase 1 — Contract and specs for the backend · day 1
 
@@ -191,10 +195,10 @@ This unblocks the backend. **Build** — architecture §4.2, §5, §6.1, §7, §
 - turn-log fields
 
 **Exit**
-- [ ] `docs/specs/` has every item above
-- [ ] A test checks that every table and column named in the specs exists in
+- [x] `docs/specs/` has every item above
+- [x] A test checks that every table and column named in the specs exists in
       `schema/erp_hr_schema.sql`
-- [ ] `docs/needs/backend/phase1/` and `docs/needs/database/phase1/` exist, in the §3.3 format
+- [x] `docs/needs/backend/phase1/` and `docs/needs/database/phase1/` exist, in the §3.3 format
 
 ## Phase 2 — Understanding service with the fake model · day 2
 
@@ -252,13 +256,21 @@ This unblocks the backend. **Build** — architecture §4.2, §5, §6.1, §7, §
 
 # 5. Environment — Git Bash on Windows
 
+uv manages Python and the dependencies.
+
 ```bash
-py -3.12 -m venv .venv
-source .venv/Scripts/activate          # NOT .venv/bin/activate
-python -m pip install -e ".[dev]"
-python -m pytest
+# setup — install uv first (https://docs.astral.sh/uv/), then:
+uv sync --extra dev
+
+# run
+uv run pytest
+uv run ruff check .
+uv run mypy app
 ```
 
+- **Python is pinned by `.python-version`. Never change it without a recorded decision**
+- `uv.lock` is committed. Add or change a dependency only in `pyproject.toml`, then `uv sync
+  --extra dev` and commit both files
 - **`.gitattributes` must be the first commit.** Windows saves CRLF; mixed line endings cause noisy
   diffs and broken shell scripts
 - Forward slashes in paths inside code and config
@@ -274,10 +286,11 @@ For every task:
 2. Check `docs/STATUS.md` and the current phase's needs and responses
 3. Inspect existing code before adding anything new
 4. Implement the smallest complete piece. **Tests ship with the code, not after**
-5. Run `python -m pytest`, `ruff check`, `mypy` before saying you're done
+5. Run `uv run pytest`, `uv run ruff check .`, `uv run mypy app` before saying you're done
 6. **Show the diff and wait for approval before committing**
-7. Update `docs/STATUS.md` if a phase or need changed state
-8. Report: files changed · tests added · commands run · results · anything open
+7. **Never push.** Commit only after approval; a person on the AI team pushes
+8. Update `docs/STATUS.md` if a phase or need changed state
+9. Report: files changed · tests added · commands run · results · anything open
 
 **Do only the task asked.** No extra files, folders or scaffolding.
 

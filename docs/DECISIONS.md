@@ -66,3 +66,21 @@ What:  1. Invalid model output → intent `unknown`, `subject` `null`, `details`
        Also kept: L11 (checks never degrade) and B5 (network access)
 Who:   Seif Eleslam
 When:  2026-09-21
+
+### 005 — The name-matching spec points to the catalogue for its query
+
+What:  The name-matching spec, written in Phase 1, holds the architecture §8.2 rules — exact number
+       match, score thresholds, when to ask with `c1`…, `not_found`. The team-search query stays in
+       `docs/specs/catalogue.md`, the one home for SQL (decision 004); the name-matching spec points
+       there
+Who:   Seif Eleslam
+When:  2026-09-21
+
+### 006 — uv manages Python 3.12 and the dependencies
+
+What:  uv manages the Python version and the dependencies. Python is pinned to 3.12 by
+       `.python-version`; `uv.lock` is committed. Setup is `uv sync --extra dev`, and every tool runs
+       through `uv run`. Replaces `py -3.12 -m venv` and `pip install`. The Python version changes
+       only by a recorded decision
+Who:   Seif Eleslam
+When:  2026-09-21

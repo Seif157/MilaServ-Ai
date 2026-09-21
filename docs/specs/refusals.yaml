@@ -1,0 +1,68 @@
+# Refusal texts — spec for Laravel. Architecture §9.2.
+# Status: draft · 2026-09-21
+#
+# - One entry per refusal reason. The reason code goes in the response's `refusal_reason`, and the
+#   turn log's (turn-log.md). Laravel sends the text in the language of the question.
+# - not_found has ONE text per language. It is used both when no one in the team matches and when
+#   the person exists outside the team (access rule L6). The whole response is byte-identical in
+#   both cases — same status, same reason, same text, no candidates. There is no second text, and
+#   none may be added: any difference would reveal who exists.
+# - no_data has one text per question type.
+# - HR may edit the wording. A test checks there is exactly one not_found text per language.
+
+own_records_only:
+  when: "An employee asks about another person. No lookup is made (L5)."
+  ar: "أقدر أجاوب بس عن بياناتك إنت."
+  en: "I can only answer about your own records."
+
+not_found:
+  when: "A manager asks about someone not in their direct team — whether or not that person exists (L6)."
+  ar: "مش لاقي حد بالاسم ده في فريقك."
+  en: "I couldn't find anyone by that name in your team."
+
+not_understood:
+  when: "The AI service returns intent unknown, or its output fails Laravel's own check (L3)."
+  ar: "لسه مش بقدر أجاوب على النوع ده من الأسئلة. جرّب مثلاً: «كام يوم أجازة فاضل لي؟» أو «حضوري الشهر ده» أو «مرتبي كام؟»"
+  en: "I can't answer that kind of question yet. Try, for example: \"How many leave days do I have left?\", \"My attendance this month\" or \"What is my salary?\""
+
+no_data:
+  when: "The query returns zero rows."
+  leave_balance:
+    ar: "مفيش رصيد إجازات مسجل للسنة دي."
+    en: "There is no leave balance recorded for that year."
+  leave_requests:
+    ar: "مفيش طلبات إجازة في الفترة دي."
+    en: "There are no leave requests in that period."
+  attendance_month:
+    ar: "مفيش ملخص حضور للشهر ده لسه."
+    en: "There is no attendance summary for that month yet."
+  salary:
+    ar: "مفيش بيانات مرتب حالية معتمدة."
+    en: "There is no current approved salary record."
+  contract:
+    ar: "مفيش عقد حالي مسجل."
+    en: "There is no current contract on record."
+  documents_expiring:
+    ar: "مفيش مستندات منتهية أو هتنتهي في الفترة دي."
+    en: "No documents have expired or expire in that period."
+  penalties:
+    ar: "مفيش جزاءات مسجلة في الفترة دي."
+    en: "There are no penalties recorded in that period."
+  my_team:
+    ar: "مفيش موظفين في فريقك حاليًا."
+    en: "There is no one in your team at the moment."
+
+not_available_yet:
+  when: "Policy or لائحة questions, document contents, pay periods, or a P2 question type not yet built."
+  ar: "الأسئلة دي لسه مش متاحة."
+  en: "These questions aren't available yet."
+
+manager_access_off:
+  when: "A manager asks about a team member and the manager switch for this type is off (§7.9)."
+  ar: "مش متاح تشوف البيانات دي عن فريقك."
+  en: "This information about your team isn't available to you."
+
+unavailable:
+  when: "Kill switch off, AI service down or 503, database down, or any check that can't run (L11)."
+  ar: "المساعد مش متاح دلوقتي."
+  en: "The assistant isn't available right now."

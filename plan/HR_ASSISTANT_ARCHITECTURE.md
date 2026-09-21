@@ -620,7 +620,8 @@ One row per question, in Laravel's own storage.
 
 ## 13. Stack
 
-**AI service:** Python 3.12 · FastAPI · pydantic v2 · httpx · pytest · ruff · mypy · Docker.
+**AI service:** Python 3.12 · uv (Python, dependencies, `uv.lock`) · FastAPI · uvicorn · pydantic v2 ·
+pydantic-settings · httpx · pytest · ruff · mypy · Docker.
 **No database driver, no JWT library, no spreadsheet library.**
 
 **Laravel:** the existing ERP stack — the backend's choice.

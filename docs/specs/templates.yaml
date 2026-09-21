@@ -1,0 +1,362 @@
+# Answer templates — spec for Laravel. Architecture §9.1.
+# Status: draft · 2026-09-21
+#
+# How Laravel uses this file
+# - One entry per question type (architecture §7), with the query in docs/specs/catalogue.md.
+# - `self` — the asker asking about themselves. `team_member` — a manager asking about someone in
+#   their direct team. `my_team` has only `self`: it is always about the asker's own team.
+# - rows: one  → `text` is filled from the single row.
+#   rows: many → `intro` once, then `row` once per row, one line each.
+# - Every {placeholder} is a column in that question type's SELECT list, or {subject_name}.
+#   {subject_name} is the team member's name from the resolver — ar: first_name_local
+#   last_name_local, falling back to first_name last_name; en: first_name last_name. It appears only
+#   in team_member templates.
+# - Values are filled by code, never by the AI. Numbers: Western digits, thousands separators.
+#   Dates: YYYY-MM-DD. A null value shows as —.
+# - A column listed under `values` is shown through its label, never as the raw code.
+# - `labels` are the table's column headers, in order, per language; the same headers are used in
+#   downloads. A column with no label in a language is not shown in that language's table.
+# - HR may edit the wording. Never add a placeholder that isn't a column in the query.
+# - A test checks every placeholder, label and value code against the catalogue and the schema.
+
+leave_balance:
+  rows: many
+  self:
+    ar:
+      intro: "رصيد إجازاتك:"
+      row: "{leave_name_local} لسنة {fiscal_year}: متبقي {remaining} يوم. (رصيد أول السنة {opening_balance} · أُضيف {accrued_ytd} · استُخدم {used_ytd} · قيد الموافقة {pending_ytd})"
+    en:
+      intro: "Your leave balance:"
+      row: "{leave_name} for {fiscal_year}: {remaining} days remaining. (Opening {opening_balance} · accrued {accrued_ytd} · used {used_ytd} · pending {pending_ytd})"
+  team_member:
+    ar:
+      intro: "رصيد إجازات {subject_name}:"
+      row: "{leave_name_local} لسنة {fiscal_year}: متبقي {remaining} يوم."
+    en:
+      intro: "{subject_name}'s leave balance:"
+      row: "{leave_name} for {fiscal_year}: {remaining} days remaining."
+  labels:
+    ar:
+      leave_name_local: "نوع الإجازة"
+      fiscal_year: "السنة"
+      opening_balance: "رصيد أول السنة"
+      accrued_ytd: "أُضيف"
+      used_ytd: "استُخدم"
+      pending_ytd: "قيد الموافقة"
+      remaining: "المتبقي"
+    en:
+      leave_name: "Leave type"
+      fiscal_year: "Year"
+      opening_balance: "Opening"
+      accrued_ytd: "Accrued"
+      used_ytd: "Used"
+      pending_ytd: "Pending"
+      remaining: "Remaining"
+
+leave_requests:
+  rows: many
+  self:
+    ar:
+      intro: "طلبات إجازتك:"
+      row: "{leave_name_local} من {start_date} إلى {end_date} ({working_days} يوم) — {status}"
+    en:
+      intro: "Your leave requests:"
+      row: "{leave_name} from {start_date} to {end_date} ({working_days} days) — {status}"
+  team_member:
+    ar:
+      intro: "طلبات إجازة {subject_name}:"
+      row: "{leave_name_local} من {start_date} إلى {end_date} ({working_days} يوم) — {status}"
+    en:
+      intro: "{subject_name}'s leave requests:"
+      row: "{leave_name} from {start_date} to {end_date} ({working_days} days) — {status}"
+  labels:
+    ar:
+      leave_name_local: "نوع الإجازة"
+      start_date: "من"
+      end_date: "إلى"
+      working_days: "أيام العمل"
+      is_half_day: "نصف يوم"
+      status: "الحالة"
+      reviewed_at: "تاريخ المراجعة"
+    en:
+      leave_name: "Leave type"
+      start_date: "From"
+      end_date: "To"
+      working_days: "Working days"
+      is_half_day: "Half day"
+      status: "Status"
+      reviewed_at: "Reviewed"
+  values:
+    status:
+      pending:   { ar: "قيد الموافقة", en: "pending" }
+      approved:  { ar: "موافق عليه", en: "approved" }
+      rejected:  { ar: "مرفوض", en: "rejected" }
+      returned:  { ar: "مُعاد للتعديل", en: "returned" }
+      cancelled: { ar: "ملغي", en: "cancelled" }
+
+attendance_month:
+  rows: one
+  self:
+    ar:
+      text: "حضورك في شهر {month}/{year}: {days_present} يوم حضور من {working_days_in_month} يوم عمل · {days_absent} يوم غياب · {days_on_leave} يوم إجازة · تأخير في {late_days} يوم بإجمالي {total_late_minutes} دقيقة · {total_overtime_minutes} دقيقة إضافي."
+    en:
+      text: "Your attendance for {month}/{year}: present {days_present} of {working_days_in_month} working days · absent {days_absent} · on leave {days_on_leave} · late on {late_days} days, {total_late_minutes} minutes in total · overtime {total_overtime_minutes} minutes."
+  team_member:
+    ar:
+      text: "حضور {subject_name} في شهر {month}/{year}: {days_present} يوم حضور من {working_days_in_month} يوم عمل · {days_absent} يوم غياب · {days_on_leave} يوم إجازة · تأخير في {late_days} يوم بإجمالي {total_late_minutes} دقيقة · {total_overtime_minutes} دقيقة إضافي."
+    en:
+      text: "{subject_name}'s attendance for {month}/{year}: present {days_present} of {working_days_in_month} working days · absent {days_absent} · on leave {days_on_leave} · late on {late_days} days, {total_late_minutes} minutes in total · overtime {total_overtime_minutes} minutes."
+  labels:
+    ar:
+      year: "السنة"
+      month: "الشهر"
+      working_days_in_month: "أيام العمل"
+      days_present: "حضور"
+      days_absent: "غياب"
+      days_on_leave: "إجازة"
+      late_days: "أيام التأخير"
+      total_late_minutes: "دقائق التأخير"
+      total_overtime_minutes: "دقائق الإضافي"
+    en:
+      year: "Year"
+      month: "Month"
+      working_days_in_month: "Working days"
+      days_present: "Present"
+      days_absent: "Absent"
+      days_on_leave: "On leave"
+      late_days: "Late days"
+      total_late_minutes: "Late minutes"
+      total_overtime_minutes: "Overtime minutes"
+
+salary:
+  rows: one
+  self:
+    ar:
+      text: "مرتبك الحالي (ساري من {effective_date}، يُصرف {pay_frequency}): الإجمالي {gross_salary} {currency_code} · الصافي {net_salary} {currency_code}. الأساسي {basic_salary} · بدل سكن {housing_allowance} · بدل انتقال {transport_allowance} · بدل وجبات {food_allowance} · بدل موبايل {mobile_allowance} · بدلات أخرى {other_allowance}."
+    en:
+      text: "Your current salary (effective {effective_date}, paid {pay_frequency}): gross {gross_salary} {currency_code} · net {net_salary} {currency_code}. Basic {basic_salary} · housing {housing_allowance} · transport {transport_allowance} · food {food_allowance} · mobile {mobile_allowance} · other {other_allowance}."
+  team_member:
+    ar:
+      text: "مرتب {subject_name} الحالي (ساري من {effective_date}، يُصرف {pay_frequency}): الإجمالي {gross_salary} {currency_code} · الصافي {net_salary} {currency_code}. الأساسي {basic_salary} · بدل سكن {housing_allowance} · بدل انتقال {transport_allowance} · بدل وجبات {food_allowance} · بدل موبايل {mobile_allowance} · بدلات أخرى {other_allowance}."
+    en:
+      text: "{subject_name}'s current salary (effective {effective_date}, paid {pay_frequency}): gross {gross_salary} {currency_code} · net {net_salary} {currency_code}. Basic {basic_salary} · housing {housing_allowance} · transport {transport_allowance} · food {food_allowance} · mobile {mobile_allowance} · other {other_allowance}."
+  labels:
+    ar:
+      basic_salary: "الأساسي"
+      housing_allowance: "بدل سكن"
+      transport_allowance: "بدل انتقال"
+      food_allowance: "بدل وجبات"
+      mobile_allowance: "بدل موبايل"
+      other_allowance: "بدلات أخرى"
+      gross_salary: "الإجمالي"
+      net_salary: "الصافي"
+      currency_code: "العملة"
+      pay_frequency: "دورية الصرف"
+      effective_date: "ساري من"
+    en:
+      basic_salary: "Basic"
+      housing_allowance: "Housing"
+      transport_allowance: "Transport"
+      food_allowance: "Food"
+      mobile_allowance: "Mobile"
+      other_allowance: "Other"
+      gross_salary: "Gross"
+      net_salary: "Net"
+      currency_code: "Currency"
+      pay_frequency: "Paid"
+      effective_date: "Effective"
+  values:
+    pay_frequency:
+      weekly:       { ar: "أسبوعيًا", en: "weekly" }
+      bi_weekly:    { ar: "كل أسبوعين", en: "every two weeks" }
+      semi_monthly: { ar: "مرتين في الشهر", en: "twice a month" }
+      monthly:      { ar: "شهريًا", en: "monthly" }
+
+contract:
+  rows: one
+  self:
+    ar:
+      text: "عقدك: {contract_type} — {contract_status}. من {start_date} إلى {end_date}. نهاية فترة الاختبار: {probation_end_date}. فترة الإخطار: {notice_period_days} {notice_period_unit}."
+    en:
+      text: "Your contract: {contract_type} — {contract_status}. From {start_date} to {end_date}. Probation ends: {probation_end_date}. Notice period: {notice_period_days} {notice_period_unit}."
+  team_member:
+    ar:
+      text: "عقد {subject_name}: {contract_type} — {contract_status}. من {start_date} إلى {end_date}. نهاية فترة الاختبار: {probation_end_date}. فترة الإخطار: {notice_period_days} {notice_period_unit}."
+    en:
+      text: "{subject_name}'s contract: {contract_type} — {contract_status}. From {start_date} to {end_date}. Probation ends: {probation_end_date}. Notice period: {notice_period_days} {notice_period_unit}."
+  labels:
+    ar:
+      contract_type: "نوع العقد"
+      contract_status: "الحالة"
+      start_date: "من"
+      end_date: "إلى"
+      is_open_ended: "غير محدد المدة"
+      probation_end_date: "نهاية فترة الاختبار"
+      notice_period_days: "فترة الإخطار"
+      notice_period_unit: "الوحدة"
+      renewal_type: "نوع التجديد"
+    en:
+      contract_type: "Contract type"
+      contract_status: "Status"
+      start_date: "From"
+      end_date: "To"
+      is_open_ended: "Open-ended"
+      probation_end_date: "Probation ends"
+      notice_period_days: "Notice period"
+      notice_period_unit: "Unit"
+      renewal_type: "Renewal"
+  values:
+    contract_type:
+      permanent:            { ar: "دائم", en: "permanent" }
+      fixed_term:           { ar: "محدد المدة", en: "fixed term" }
+      temporary:            { ar: "مؤقت", en: "temporary" }
+      internship:           { ar: "تدريب", en: "internship" }
+      contract:             { ar: "تعاقد", en: "contract" }
+      seasonal:             { ar: "موسمي", en: "seasonal" }
+      secondment:           { ar: "انتداب", en: "secondment" }
+      remote_work_addendum: { ar: "ملحق عمل عن بُعد", en: "remote-work addendum" }
+    contract_status:
+      draft:      { ar: "مسودة", en: "draft" }
+      active:     { ar: "ساري", en: "active" }
+      expired:    { ar: "منتهي", en: "expired" }
+      terminated: { ar: "مُنهى", en: "terminated" }
+      renewed:    { ar: "مُجدد", en: "renewed" }
+      suspended:  { ar: "موقوف", en: "suspended" }
+    notice_period_unit:
+      day:   { ar: "يوم", en: "days" }
+      week:  { ar: "أسبوع", en: "weeks" }
+      month: { ar: "شهر", en: "months" }
+
+documents_expiring:
+  rows: many
+  self:
+    ar:
+      intro: "مستنداتك المنتهية أو التي تنتهي قريبًا:"
+      row: "{document_title} ({document_type}) — تاريخ الانتهاء {expiry_date}"
+    en:
+      intro: "Your documents that have expired or expire soon:"
+      row: "{document_title} ({document_type}) — expiry date {expiry_date}"
+  team_member:
+    ar:
+      intro: "مستندات {subject_name} المنتهية أو التي تنتهي قريبًا:"
+      row: "{document_title} ({document_type}) — تاريخ الانتهاء {expiry_date}"
+    en:
+      intro: "{subject_name}'s documents that have expired or expire soon:"
+      row: "{document_title} ({document_type}) — expiry date {expiry_date}"
+  labels:
+    ar:
+      document_title: "المستند"
+      document_type: "النوع"
+      issue_date: "تاريخ الإصدار"
+      expiry_date: "تاريخ الانتهاء"
+      days_left: "الأيام المتبقية"
+      is_mandatory: "إلزامي"
+      is_verified: "تم التحقق"
+    en:
+      document_title: "Document"
+      document_type: "Type"
+      issue_date: "Issued"
+      expiry_date: "Expires"
+      days_left: "Days left"
+      is_mandatory: "Mandatory"
+      is_verified: "Verified"
+  values:
+    document_type:
+      degree:              { ar: "مؤهل دراسي", en: "degree" }
+      passport:            { ar: "جواز سفر", en: "passport" }
+      degree_certificate:  { ar: "شهادة التخرج", en: "degree certificate" }
+      professional_cert:   { ar: "شهادة مهنية", en: "professional certificate" }
+      national_id:         { ar: "بطاقة الرقم القومي", en: "national ID" }
+      birth_certificate:   { ar: "شهادة ميلاد", en: "birth certificate" }
+      work_permit:         { ar: "تصريح عمل", en: "work permit" }
+      visa:                { ar: "تأشيرة", en: "visa" }
+      iban_letter:         { ar: "خطاب الحساب البنكي", en: "IBAN letter" }
+      medical_certificate: { ar: "شهادة طبية", en: "medical certificate" }
+      insurance_card:      { ar: "كارت التأمين", en: "insurance card" }
+      background_check:    { ar: "فيش جنائي", en: "background check" }
+      other:               { ar: "أخرى", en: "other" }
+
+penalties:
+  rows: many
+  self:
+    ar:
+      intro: "جزاءاتك:"
+      row: "{penalty_no} — {name_ar} بتاريخ {occurred_on}: {penalty_kind} ({status})"
+    en:
+      intro: "Your penalties:"
+      row: "{penalty_no} — {name_en} on {occurred_on}: {penalty_kind} ({status})"
+  team_member:
+    ar:
+      intro: "جزاءات {subject_name}:"
+      row: "{penalty_no} — {name_ar} بتاريخ {occurred_on}: {penalty_kind} ({status})"
+    en:
+      intro: "{subject_name}'s penalties:"
+      row: "{penalty_no} — {name_en} on {occurred_on}: {penalty_kind} ({status})"
+  labels:
+    ar:
+      penalty_no: "رقم الجزاء"
+      name_ar: "المخالفة"
+      occurred_on: "التاريخ"
+      penalty_kind: "الجزاء"
+      deduction_days: "أيام الخصم"
+      status: "الحالة"
+      applied_at: "تاريخ التطبيق"
+    en:
+      penalty_no: "Penalty no."
+      name_en: "Violation"
+      occurred_on: "Date"
+      penalty_kind: "Penalty"
+      deduction_days: "Deduction days"
+      status: "Status"
+      applied_at: "Applied"
+  values:
+    penalty_kind:
+      warning:                { ar: "إنذار", en: "warning" }
+      day_deduction:          { ar: "خصم أيام", en: "day deduction" }
+      increment_denial:       { ar: "حرمان من العلاوة", en: "increment denied" }
+      increment_postponement: { ar: "تأجيل العلاوة", en: "increment postponed" }
+      wage_reduction:         { ar: "تخفيض الأجر", en: "wage reduction" }
+      grade_reduction:        { ar: "خفض الدرجة", en: "grade reduction" }
+      dismissal:              { ar: "فصل", en: "dismissal" }
+      escalates_to:           { ar: "تصعيد", en: "escalated" }
+    status:
+      draft:         { ar: "مسودة", en: "draft" }
+      investigating: { ar: "قيد التحقيق", en: "under investigation" }
+      applied:       { ar: "مُطبق", en: "applied" }
+      waived:        { ar: "مُلغى", en: "waived" }
+      appealed:      { ar: "متظلم منه", en: "appealed" }
+
+my_team:
+  rows: many
+  self:
+    ar:
+      intro: "فريقك:"
+      row: "{employee_number} — {first_name_local} {last_name_local} · {position_title_local} · {employment_status}"
+    en:
+      intro: "Your team:"
+      row: "{employee_number} — {first_name} {last_name} · {position_title} · {employment_status}"
+  labels:
+    ar:
+      employee_number: "الرقم الوظيفي"
+      first_name_local: "الاسم"
+      last_name_local: "اسم العائلة"
+      position_title_local: "الوظيفة"
+      employment_status: "الحالة"
+      hire_date: "تاريخ التعيين"
+    en:
+      employee_number: "Employee no."
+      first_name: "First name"
+      last_name: "Last name"
+      position_title: "Position"
+      employment_status: "Status"
+      hire_date: "Hired"
+  values:
+    employment_status:
+      active:     { ar: "على رأس العمل", en: "active" }
+      probation:  { ar: "فترة اختبار", en: "probation" }
+      on_leave:   { ar: "في إجازة", en: "on leave" }
+      suspended:  { ar: "موقوف", en: "suspended" }
+      terminated: { ar: "انتهت خدمته", en: "terminated" }
+      resigned:   { ar: "مستقيل", en: "resigned" }
+      retired:    { ar: "متقاعد", en: "retired" }
+      inactive:   { ar: "غير نشط", en: "inactive" }

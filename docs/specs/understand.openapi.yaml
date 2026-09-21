@@ -1,0 +1,277 @@
+openapi: 3.1.0
+info:
+  title: HR Assistant — understanding service
+  version: "1.0.0-draft"
+  summary: Question text in, structured meaning out. Architecture §5.1 and §6.1.
+  description: |
+    Called by Laravel only, over the internal network. The service is stateless: it holds no
+    employee data, no user identity and no database access, and it never logs question text.
+
+    Written by hand. In Phase 2 a test checks that the running service matches this file.
+
+    Two failures stay distinct:
+    - the model answered badly (invalid JSON, extra fields, wrong values) → `200` with intent
+      `unknown`, `subject` null, `details` empty, `language` set by code from the script
+    - the model couldn't be reached after retries → `503`
+
+    Error bodies never echo the request, so they never contain question text.
+
+servers:
+  - url: http://hr-assistant.internal
+    description: Placeholder — the real internal address comes with need B5
+
+security:
+  - serviceKey: []
+
+paths:
+  /v1/understand:
+    post:
+      operationId: understand
+      summary: Understand one question
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UnderstandRequest"
+            example:
+              question: "كام يوم أجازة فاضل لي؟"
+              request_id: "5b0e3c7a-2f1d-4c6e-9a8b-1d2e3f4a5b6c"
+      responses:
+        "200":
+          description: >-
+            Understood — including intent `unknown` when the model's output was invalid.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnderstandResponse"
+              examples:
+                self:
+                  value:
+                    intent: leave_balance
+                    subject: { kind: self, name: null, employee_number: null }
+                    details: { period: this_year }
+                    language: ar
+                    meta:
+                      request_id: "5b0e3c7a-2f1d-4c6e-9a8b-1d2e3f4a5b6c"
+                      prompt_version: understand-v1
+                      model_id: fake
+                person:
+                  value:
+                    intent: attendance_month
+                    subject: { kind: person, name: "أحمد محمد", employee_number: null }
+                    details: { year: 2026, month: 8 }
+                    language: ar
+                    meta:
+                      request_id: "0c1d2e3f-4a5b-4c6d-8e9f-a0b1c2d3e4f5"
+                      prompt_version: understand-v1
+                      model_id: fake
+                unknown:
+                  value:
+                    intent: unknown
+                    subject: null
+                    details: {}
+                    language: ar
+                    meta:
+                      request_id: "9f8e7d6c-5b4a-4392-8170-6f5e4d3c2b1a"
+                      prompt_version: understand-v1
+                      model_id: fake
+        "401":
+          description: Missing or wrong `X-Service-Key`.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example: { error: unauthorized }
+        "422":
+          description: >-
+            Body invalid — an unknown field, a missing field, a question empty or over 500
+            characters, a request_id that isn't a UUID.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example: { error: invalid_request }
+        "503":
+          description: Kill switch off, or the provider unreachable after retries.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example: { error: unavailable }
+
+components:
+  securitySchemes:
+    serviceKey:
+      type: apiKey
+      in: header
+      name: X-Service-Key
+      description: The shared service key (need B1). Never in a repo.
+
+  schemas:
+    UnderstandRequest:
+      type: object
+      additionalProperties: false
+      required: [question, request_id]
+      properties:
+        question:
+          type: string
+          minLength: 1
+          maxLength: 500
+        request_id:
+          type: string
+          format: uuid
+          description: Made by Laravel; echoed in `meta` and written to both logs.
+
+    UnderstandResponse:
+      description: >-
+        The §6.1 fields plus `meta`. `subject` is null only when intent is `unknown`, and always
+        null then; `details` is empty then too.
+      oneOf:
+        - $ref: "#/components/schemas/Understood"
+        - $ref: "#/components/schemas/NotUnderstood"
+
+    Understood:
+      type: object
+      additionalProperties: false
+      required: [intent, subject, details, language, meta]
+      properties:
+        intent:
+          type: string
+          enum:
+            - leave_balance
+            - leave_requests
+            - attendance_month
+            - salary
+            - contract
+            - documents_expiring
+            - penalties
+            - my_team
+        subject:
+          $ref: "#/components/schemas/Subject"
+        details:
+          $ref: "#/components/schemas/Details"
+        language:
+          $ref: "#/components/schemas/Language"
+        meta:
+          $ref: "#/components/schemas/Meta"
+
+    NotUnderstood:
+      type: object
+      additionalProperties: false
+      required: [intent, subject, details, language, meta]
+      properties:
+        intent:
+          const: unknown
+        subject:
+          type: "null"
+        details:
+          type: object
+          maxProperties: 0
+        language:
+          $ref: "#/components/schemas/Language"
+        meta:
+          $ref: "#/components/schemas/Meta"
+
+    Subject:
+      description: >-
+        `self` carries no name or number. `person` carries a name, an employee number, or both —
+        as written in the question, digits in any script. Laravel searches only the asker's
+        allowed set (name-matching.md).
+      type: object
+      additionalProperties: false
+      required: [kind, name, employee_number]
+      properties:
+        kind:
+          type: string
+          enum: [self, person]
+        name:
+          type: [string, "null"]
+          minLength: 1
+          maxLength: 200
+        employee_number:
+          type: [string, "null"]
+          minLength: 1
+          maxLength: 20
+      oneOf:
+        - properties:
+            kind: { const: self }
+            name: { type: "null" }
+            employee_number: { type: "null" }
+        - properties:
+            kind: { const: person }
+          anyOf:
+            - properties:
+                name: { type: string }
+            - properties:
+                employee_number: { type: string }
+
+    Details:
+      description: |
+        Suggestions only — Laravel validates each one (L3). A field not stated in the question is
+        absent, never null.
+
+        Dates: either the absolute `year` / `month` the user stated, or a relative `period` token
+        — never both. The AI service never resolves dates; Laravel resolves `period` with its own
+        Africa/Cairo clock (L12).
+      type: object
+      additionalProperties: false
+      properties:
+        year:
+          type: integer
+          minimum: 2000
+          maximum: 2100
+        month:
+          type: integer
+          minimum: 1
+          maximum: 12
+        period:
+          type: string
+          enum: [this_month, last_month, this_year, last_year]
+        leave_type:
+          type: string
+          minLength: 1
+          maxLength: 100
+          description: As the user wrote it. Laravel matches it to a `leave_types` row.
+        status:
+          type: string
+          enum: [pending, approved, rejected, returned, cancelled]
+          description: A leave request status.
+        within_days:
+          type: integer
+          minimum: 1
+          maximum: 365
+      not:
+        required: [period]
+        anyOf:
+          - required: [year]
+          - required: [month]
+
+    Language:
+      type: string
+      enum: [ar, en]
+
+    Meta:
+      type: object
+      additionalProperties: false
+      required: [request_id, prompt_version, model_id]
+      properties:
+        request_id:
+          type: string
+          format: uuid
+          description: Echoed from the request.
+        prompt_version:
+          type: string
+          description: The prompt file used, from `prompts/`. Laravel stores it in the turn log.
+        model_id:
+          type: string
+          description: The model that answered — `fake` under FakeUnderstander. Laravel stores it.
+
+    Error:
+      type: object
+      additionalProperties: false
+      required: [error]
+      properties:
+        error:
+          type: string
+          enum: [unauthorized, invalid_request, unavailable]
