@@ -57,8 +57,8 @@ phases.
 
 **The business person needs two things:** a **name** in `STATUS.md` — business items don't block
 anyone's code on day one, so without a named owner they drift — and **a way to update without Git
-Bash**: either the GitHub/GitLab web editor on `business.md`, or they send updates to Seif, who
-commits them. Agree which before Phase 1 closes.
+Bash**: either the GitHub/GitLab web editor on `docs/response/business/phaseN/phaseNresponse.md`,
+or they send updates to Seif, who commits them. Agree which before Phase 1 closes.
 
 **"Support" includes real work, not only answers.** This repository cannot create database roles,
 policies or tables — so some requests can only be delivered on the Laravel side. See §12. If those
@@ -106,21 +106,19 @@ hr-assistant/
 │   │       ├── scope_token_v1.md
 │   │       ├── persistence_v1.md
 │   │       └── fixtures/scope_token_v1.jwt   ← shared test fixture (see §4.3)
-│   └── needs/
-│       ├── phase-01-pre-implementation/
-│       │   ├── ai.md                  ← what the AI team does in this phase
-│       │   ├── backend.md             ← requests TO backend
-│       │   ├── business.md            ← requests TO business
-│       │   └── exit.md                ← tests that prove the phase is finished
-│       ├── phase-02-security/
-│       ├── phase-03-platform/
-│       ├── phase-04-first-answer/
-│       ├── phase-05-core-catalogue/
-│       ├── phase-06-conversation/
-│       ├── phase-07-scale/
-│       ├── phase-08-go-live/
-│       ├── phase-09-policy/
-│       └── phase-10-flexible/
+│   ├── needs/                         ← what each field is asked for, per phase
+│   │   ├── ai/phase1/phase1needs.md        ← what the AI team does in this phase
+│   │   ├── backend/phase1/phase1needs.md   ← requests TO backend
+│   │   ├── business/phase1/phase1needs.md  ← requests TO business
+│   │   └── exit/phase1/phase1needs.md      ← tests that prove the phase is finished
+│   └── response/                      ← the answers and evidence, same shape as needs/
+│       ├── ai/phase1/phase1response.md        ← findings marked, contracts, fixture
+│       ├── backend/phase1/phase1response.md   ← backend's evidence, AI's verification
+│       ├── business/phase1/phase1response.md  ← business's answers, AI's verification
+│       └── exit/phase1/phase1response.md      ← PASS / FAIL per exit test
+│
+│   Later phases add phaseN/ inside each field folder (phase2 … phase10), created
+│   only when that phase is being prepared.
 ├── app/
 │   ├── main.py
 │   ├── api/                  routes · answer envelope · error mapping
@@ -159,8 +157,10 @@ hr-assistant/
 request (§3) and report `BACKEND REQUIRED`. Never compensate for a missing database control with
 application-side filtering — that moves the boundary to the wrong layer and hides the gap.
 
-**Phase folders are phase-first on purpose.** Before a phase the question is *"can we start?"* —
-one folder answers it. *"What does the backend owe right now?"* is answered by `STATUS.md`.
+**Needs and responses are field-first.** Each field — ai, backend, business, exit — has its own
+folder, with one `phaseN/` folder per phase inside it. *"Can we start phase N?"* is answered by the
+`phaseN/` folders across `needs/` and `response/`. *"What does the backend owe right now?"* is
+answered by `STATUS.md`.
 
 ---
 
@@ -168,17 +168,20 @@ one folder answers it. *"What does the backend owe right now?"* is answered by `
 
 ## 3.1 Needs — entry and exit for every phase
 
-Each phase folder has four files:
+Each phase has four fields. Every field has a **needs** file and a **response** file, paired by
+request ID (`B1`, `U1`, `E1` …):
 
-| File | Written by | Contains |
+| Field | `needs/<field>/phaseN/phaseNneeds.md` | `response/<field>/phaseN/phaseNresponse.md` |
 |---|---|---|
-| `ai.md` | AI | What the AI team builds in this phase |
-| `backend.md` | AI → answered by backend | Requests the phase depends on |
-| `business.md` | AI → answered by business | Decisions the phase depends on |
-| `exit.md` | AI | The tests that prove the phase is finished |
+| `ai` | AI — what the AI team builds in this phase | AI — what it delivered: findings, contracts, fixtures |
+| `backend` | AI — requests the phase depends on | Backend fills *Done by* + evidence · AI fills *Verified by* + result |
+| `business` | AI — decisions the phase depends on | Business fills *Answered by* + answer · AI fills *Verified by* + result |
+| `exit` | AI — the tests that prove the phase is finished | AI — `PASS` / `FAIL` per test, with evidence |
+
+The **Status** of a request lives in the needs file. The evidence lives in the response file.
 
 **A phase starts only when every request it depends on is `VERIFIED`.**
-**A phase ends only when every test in `exit.md` passes.**
+**A phase ends only when every test in `needs/exit/phaseN/` passes.**
 The exit of one phase becomes part of the needs of the next.
 
 ## 3.2 Request states
@@ -920,7 +923,7 @@ request idempotency, model retry and tool retry are four different things.
 | 11 | The current schema at migration head, plus Gate A results | **Phase 1** |
 | 12 | `HR_ROLE_AUTHORITY_MATRIX.md` | Mapping roles to scopes, mid-Phase 2 |
 
-Each one is a request in the relevant phase's `backend.md`, with an **Expected** output.
+Each one is a request in `docs/needs/backend/phaseN/phaseNneeds.md` for the relevant phase, with an **Expected** output.
 
 ## 12.2 The fake dataset — shape matters
 
@@ -987,7 +990,7 @@ another, and look like a genuine integrity problem.
 For every task:
 
 1. Read this file
-2. Read the relevant plan section and the current phase's `needs/` folder
+2. Read the relevant plan section and the current phase's `phaseN/` folders under `docs/needs/` and `docs/response/`
 3. **Check `QUESTIONS.md` before asking the backend anything**
 4. Inspect existing code before creating new abstractions
 5. Don't guess schema, policies, grants or enum values — ask, or mark `BLOCKED`
